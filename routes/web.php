@@ -1,16 +1,38 @@
 <?php
 // routes/web.php
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\CustomRegisteredUserController;
-use App\Http\Controllers\RoadmapController;
+use App\Http\Controllers\YourController;
 use App\Http\Controllers\DosenController;
-use App\Http\Controllers\MahasiswaController;
-use App\Http\Controllers\BeritaController;
-use App\Http\Controllers\TingkatController;
 use App\Http\Controllers\MitraController;
+use App\Http\Controllers\BeritaController;
+use App\Http\Controllers\RoadmapController;
+use App\Http\Controllers\TingkatController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MahasiswaController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\PenelitianController;
+use App\Http\Controllers\PengabdianController;
+use App\Http\Controllers\Auth\CustomRegisteredUserController;
+use App\Http\Controllers\RequestController;
+
+Route::middleware(['auth:mitra'])->group(function () {
+    Route::get('/request', [RequestController::class, 'index'])->name('request.index');
+});
+
+
+Route::post('/request/store', [RequestController::class, 'store'])->name('request.store');
+
+
+
+Route::get('/list-penelitian', [PenelitianController::class, 'menumitra']);
+Route::get('/list-pengabdian', [PengabdianController::class, 'menumitra']);
+
+Route::get('/daftar-penelitian', [PenelitianController::class, 'list'])->name('penelitian.landing');
+Route::get('/daftar-pengabdian', [PengabdianController::class, 'list'])->name('pengabdian.landing');
+
+
+Route::resource('pengabdian', PengabdianController::class);
+
 
 Route::post('penelitian/{penelitianId}/luaran', [PenelitianController::class, 'storeLuaran'])->name('penelitian.luaran.store');
 
@@ -63,6 +85,12 @@ Route::get('/umum', function () {
     return view('umum.dashboard');
 })->middleware('role:umum');
 
-Route::get('/', function () {
-    return view('landing-page');
-});
+Route::get('/mitra/dashboard', function () {
+    return view('mitra.landing');
+})->middleware('auth:mitra');
+
+// Route::get('/', function () {
+//     return view('landing-page');
+// });
+
+Route::get('/', [YourController::class, 'index'])->name('landing');

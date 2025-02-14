@@ -205,4 +205,38 @@ class PenelitianController extends Controller
 
         return redirect()->route('penelitian.index')->with('success', 'Data penelitian berhasil dihapus.');
     }
+    public function list()
+    {
+
+        $tingkat = Tingkat::all();
+        $roadmap = Roadmap::all();
+        $dosens = Dosen::all();
+        $mahasiswa  = Mahasiswa::all();
+        $mitra = Mitra::all();
+        $penelitians = Penelitian::with([
+            'tingkat',
+            'roadmap',
+            'ketuaDosen',
+            'anggotaPenelitian.dosen',
+            'anggotaPenelitian.mahasiswa'
+        ])->paginate(10);
+        return view('penelitian', compact('penelitians', 'tingkat', 'roadmap', 'dosens', 'mitra', 'mahasiswa'));
+    }
+    public function menumitra()
+    {
+
+        $tingkat = Tingkat::all();
+        $roadmap = Roadmap::all();
+        $dosens = Dosen::all();
+        $mahasiswa  = Mahasiswa::all();
+        $mitra = Mitra::all();
+        $penelitians = Penelitian::with([
+            'tingkat',
+            'roadmap',
+            'ketuaDosen',
+            'anggotaPenelitian.dosen',
+            'anggotaPenelitian.mahasiswa'
+        ])->paginate(10);
+        return view('mitra.penelitian', compact('penelitians', 'tingkat', 'roadmap', 'dosens', 'mitra', 'mahasiswa'));
+    }
 }

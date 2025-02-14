@@ -3,7 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Mitra;
+use App\Models\Berita;
+use App\Models\Roadmap;
+use App\Models\Tingkat;
+use App\Models\Penelitian;
+use App\Models\Pengabdian;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 
 class MitraController extends Controller
 {
@@ -11,6 +17,36 @@ class MitraController extends Controller
     {
         $mitras = Mitra::all();
         return view('admin.mitra.index', compact('mitras'));
+    }
+    public function show()
+    {
+        $beritas = Berita::latest()->get(); 
+        $roadmaps = Roadmap::all(); // Ambil semua roadmap
+        $tingkats = Tingkat::all(); // Ambil semua tingkat
+
+        // Ambil data penelitian dan pengabdian berdasarkan filter roadmap dan tingkat
+        $penelitianQuery = Penelitian::query();
+        $pengabdianQuery = Pengabdian::query();
+
+        // Filter berdasarkan roadmap dan tingkat jika ada parameter
+        if (request()->has('roadmap_id')) {
+            $penelitianQuery->where('id_roadmap', request('roadmap_id'));
+            $pengabdianQuery->where('id_roadmap', request('roadmap_id'));
+        }
+
+        if (request()->has('tingkat_id')) {
+            $penelitianQuery->where('id_tingkat', request('tingkat_id'));
+            $pengabdianQuery->where('id_tingkat', request('tingkat_id'));
+        }
+
+        // Ambil data penelitian dan pengabdian yang difilter
+        $penelitian = $penelitianQuery->get();
+        $pengabdian = $pengabdianQuery->get();
+
+        // Ambil data statistik untuk grafik
+        $penelitianCount = $penelitian->count();
+        $pengabdianCount = $pengabdian->count();
+        return view('mitra.landing', compact('penelitianCount', 'pengabdianCount', 'roadmaps', 'tingkats','beritas'));
     }
 
     public function create()

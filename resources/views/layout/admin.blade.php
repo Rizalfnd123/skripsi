@@ -56,67 +56,69 @@
                         Beranda
                     </a>
                 </li>
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4">
-                    <a href="{{ route('roadmap.index') }}" class="flex items-center w-full">
+
+                <!-- User Dropdown -->
+                <!-- User Dropdown -->
+                <li class="relative p-2 ms-2 me-2">
+                    <button type="button" onclick="toggleDropdown('user-menu', event)"
+                        class="flex items-center w-full hover:bg-gray-300 rounded p-2">
+                        <span class="material-icons text-gray-600 mr-2">people</span>
+                        User
+                        <span class="material-icons ml-auto">expand_more</span>
+                    </button>
+                    <ul id="user-menu"
+                        class="hidden absolute left-0 top-full bg-white shadow-md rounded mt-1 w-48 z-50">
+                        <li class="p-2 hover:bg-gray-200">
+                            <a href="{{ route('dosen.index') }}" class="block w-full">Dosen</a>
+                        </li>
+                        <li class="p-2 hover:bg-gray-200">
+                            <a href="{{ route('mahasiswa.index') }}" class="block w-full">Mahasiswa</a>
+                        </li>
+                        <li class="p-2 hover:bg-gray-200">
+                            <a href="{{ route('mitra.index') }}" class="block w-full">Mitra</a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Data Umum Dropdown -->
+                <li class="relative p-2 ms-2 me-2">
+                    <button type="button" onclick="toggleDropdown('data-umum', event)"
+                        class="flex items-center w-full hover:bg-gray-300 rounded p-2">
                         <span class="material-icons text-gray-600 mr-2">storage</span>
-                        Roadmap
-                    </a>
+                        Data Umum
+                        <span class="material-icons ml-auto">expand_more</span>
+                    </button>
+                    <ul id="data-umum"
+                        class="hidden absolute left-0 top-full bg-white shadow-md rounded mt-1 w-48 z-50">
+                        <li class="p-2 hover:bg-gray-200">
+                            <a href="{{ route('roadmap.index') }}" class="block w-full">Roadmap</a>
+                        </li>
+                        <li class="p-2 hover:bg-gray-200">
+                            <a href="{{ route('tingkat.index') }}" class="block w-full">Pendanaan</a>
+                        </li>
+                    </ul>
                 </li>
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4">
-                    <a href="{{ route('tingkat.index') }}" class="flex items-center w-full">
-                        <span class="material-icons text-gray-600 mr-2">storage</span>
-                        Pendanaan
-                    </a>
-                </li>
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4">
-                    <a href="{{ route('dosen.index') }}" class="flex items-center w-full">
-                        <span class="material-icons text-gray-600 mr-2">people</span>
-                        Dosen
-                    </a>
-                </li>
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4">
-                    <a href="{{ route('mahasiswa.index') }}" class="flex items-center w-full">
-                        <span class="material-icons text-gray-600 mr-2">people</span>
-                        Mahasiswa
-                    </a>
-                </li>
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4">
-                    <a href="{{ route('mitra.index') }}" class="flex items-center w-full">
-                        <span class="material-icons text-gray-600 mr-2">people</span>
-                        Mitra
-                    </a>
-                </li>
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4">
+
+
+                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4 mt-1">
                     <a href="{{ route('berita.index') }}" class="flex items-center w-full">
                         <span class="material-icons text-gray-600 mr-2">people</span>
                         Berita
                     </a>
                 </li>
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4">
+                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4 mt-3">
                     <a href="{{ route('penelitian.index') }}" class="flex items-center w-full">
                         <span class="material-icons text-gray-600 mr-2">book</span>
                         Penelitian
                     </a>
                 </li>
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4">
-                    {{-- <a href="{{ route('admin.pengabdian') }}" class="flex items-center w-full"> --}}
-                    <span class="material-icons text-gray-600 mr-2">volunteer_activism</span>
-                    Pengabdian
+                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4 mt-3">
+                    <a href="{{ route('pengabdian.index') }}" class="flex items-center w-full">
+                        <span class="material-icons text-gray-600 mr-2">volunteer_activism</span>
+                        Pengabdian
                     </a>
                 </li>
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4">
-                    {{-- <a href="{{ route('admin.request') }}" class="flex items-center w-full"> --}}
-                    <span class="material-icons text-gray-600 mr-2">request_quote</span>
-                    Request
-                    </a>
-                </li>
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4">
-                    {{-- <a href="{{ route('admin.rekap') }}" class="flex items-center w-full"> --}}
-                    <span class="material-icons text-gray-600 mr-2">pie_chart</span>
-                    Rekap
-                    </a>
-                </li>
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4">
+                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4 mt-3">
                     <span class="material-icons text-gray-600 mr-2">logout</span>
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
@@ -124,7 +126,6 @@
                     </form>
                 </li>
             </ul>
-
         </div>
 
         <!-- Main Content -->
@@ -139,6 +140,19 @@
     @yield('scripts')
     <!-- Script for Theme Dropdown -->
     <script>
+        function toggleDropdown(id, event) {
+            event.stopPropagation(); // Mencegah klik pada button mengganggu link di dalam dropdown
+            document.getElementById(id).classList.toggle("hidden");
+        }
+
+        // Tutup dropdown saat klik di luar
+        document.addEventListener("click", function() {
+            document.querySelectorAll("ul[id^='user-menu'], ul[id^='data-umum']").forEach(menu => {
+                menu.classList.add("hidden");
+            });
+        });
+
+
         const toggleSidebar = document.getElementById('toggleSidebar');
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('mainContent');

@@ -34,69 +34,14 @@
             </nav>
         </div>
     </header>
+    <!-- Main Content -->
+    <div id="mainContent" class="ml-0 w-full transition-all duration-300">
+        <div class="p-8">
+            @yield('breadcrumbs')
 
-    <!-- Hero Section -->
-    <section class="relative w-full h-screen bg-cover bg-center"
-        style="background-image: url('{{ asset('assets/img/hero-bg.jpg') }}');">
-        <div class="absolute inset-0 bg-black opacity-60"></div>
-        <div
-            class="relative container mx-auto h-full flex flex-col justify-center items-center text-center text-white px-4">
-            <h1 class="text-4xl md:text-6xl font-extrabold mb-4">Selamat Datang di SIPPMas</h1>
-            <p class="text-xl md:text-2xl max-w-2xl">Sistem Informasi Penelitian dan Pengabdian Masyarakat yang
-                memudahkan kolaborasi dan inovasi.</p>
+            @yield('content')
         </div>
-    </section>
-
-    <!-- Welcome Section -->
-    <section class="py-16 bg-white">
-        <div class="container mx-auto text-center px-4">
-            <h2 class="text-3xl md:text-4xl font-bold mb-6">Selamat Datang di Pusat Penelitian</h2>
-            <p class="text-lg text-gray-700 max-w-2xl mx-auto">
-                Kami menyediakan platform untuk mempermudah penelitian dan pengabdian masyarakat melalui inovasi digital
-                dan kolaborasi.
-            </p>
-        </div>
-    </section>
-
-    <!-- Latest News Section -->
-    <section class="py-16 bg-gray-50">
-        <div class="container mx-auto px-4">
-            <h3 class="text-2xl md:text-3xl font-bold text-center mb-10">Berita Terbaru</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                @forelse($beritas as $berita)
-                    <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-2xl transition-shadow">
-                        <!-- Menampilkan foto dari storage/public/berita -->
-                        <img src="{{ asset('storage/' . $berita->foto) }}" alt="{{ $berita->judul }}"
-                            class="w-full h-48 object-cover">
-                        <div class="p-6">
-                            <h4 class="font-bold text-xl mb-2">{{ $berita->judul }}</h4>
-                            <p class="text-gray-600 text-sm mb-2">
-                                Tanggal: {{ \Carbon\Carbon::parse($berita->tanggal)->format('d M Y') }}
-                            </p>
-                            <p class="text-gray-700 text-sm">
-                                {{ Str::limit($berita->keterangan, 100) }}
-                            </p>
-                        </div>
-                    </div>
-                @empty
-                    <div class="col-span-3 text-center">
-                        <p class="text-gray-600">Belum ada berita terbaru.</p>
-                    </div>
-                @endforelse
-            </div>
-        </div>
-    </section>
-    <!-- Grafik Data Penelitian & Pengabdian Selama Setahun -->
-    <section class="py-16 bg-white">
-        <div class="container mx-auto px-4">
-            <h3 class="text-2xl md:text-3xl font-bold text-center mb-10">
-                Statistik Penelitian dan Pengabdian Selama Setahun
-            </h3>
-            <div class="flex justify-center">
-                <canvas id="researchChart" class="w-full md:w-2/3 lg:w-1/2"></canvas>
-            </div>
-        </div>
-    </section>
+    </div>
 
     <!-- Footer -->
     <footer class="bg-gray-800 text-gray-300 py-6">
@@ -106,6 +51,7 @@
     </footer>
 
 </body>
+@yield('scripts')
 <!-- Tambahkan Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>

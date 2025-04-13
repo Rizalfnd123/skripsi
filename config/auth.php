@@ -18,6 +18,10 @@ return [
             'driver' => 'session',
             'provider' => 'mitras',
         ],
+        'dosen' => [
+            'driver' => 'session',
+            'provider' => 'dosens',
+        ],
     ],
 
     'providers' => [
@@ -29,11 +33,10 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\Mitra::class,
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'dosens' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Dosen::class,
+        ],
     ],
 
 

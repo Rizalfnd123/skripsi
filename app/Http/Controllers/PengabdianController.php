@@ -36,7 +36,7 @@ class PengabdianController extends Controller
             ->with('success', 'Luaran berhasil ditambahkan!');
     }
 
-    public function index()
+    public function index(Request $request)
     {
 
         $tingkat = Tingkat::all();
@@ -44,14 +44,29 @@ class PengabdianController extends Controller
         $dosens = Dosen::all();
         $mahasiswa  = Mahasiswa::all();
         $mitra = Mitra::all();
-        $pengabdian = Pengabdian::with([
-            'tingkat',
+        // Ambil filter semester dari request
+        $semester = $request->semester;
+        $pengabdianQuery = Pengabdian::with([
+            'tingkat', 
             'roadmap',
             'ketuaDosen',
             'anggotaPengabdian.dosen',
             'anggotaPengabdian.mahasiswa'
-        ])->paginate(10);
-        // dd($pengabdian);
+        ]);
+        
+        if ($semester) {
+            // Cek apakah semester ganjil atau genap
+            [$tahun, $jenisSemester] = explode(' ', $semester);
+
+            if (strtolower($jenisSemester) == 'ganjil') {
+                $pengabdianQuery->whereBetween('tanggal', ["$tahun-07-01", "$tahun-12-31"]);
+            } elseif (strtolower($jenisSemester) == 'genap') {
+                $tahunGenap = (int) $tahun + 1; // Semester genap berlangsung hingga tahun berikutnya
+                $pengabdianQuery->whereBetween('tanggal', ["$tahunGenap-01-01", "$tahunGenap-06-30"]);
+            }
+        }
+
+        $pengabdian = $pengabdianQuery->paginate(10);
         return view('admin.pengabdian.index', compact('pengabdian', 'tingkat', 'roadmap', 'dosens', 'mitra', 'mahasiswa'));
     }
 

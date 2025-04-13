@@ -50,17 +50,4 @@ class Penelitian extends Model
     {
         return $this->hasMany(Luaran::class, 'penelitian_id', 'id');
     }
-
-
-    // // Relasi ke anggota Dosen (Perbaikan)
-    // public function anggotaDosen()
-    // {
-    //     return $this->hasMany(AnggotaPenelitian::class, 'id_penelitian', 'id')->where('anggota_type', Dosen::class);
-    // }
-
-    // // Relasi ke anggota Mahasiswa (Perbaikan)
-    // public function anggotaMahasiswa()
-    // {
-    //     return $this->hasMany(AnggotaPenelitian::class, 'id_penelitian', 'id')->where('anggota_type', Mahasiswa::class);
-    // }
 }

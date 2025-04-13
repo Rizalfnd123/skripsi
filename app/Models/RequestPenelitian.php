@@ -11,4 +11,16 @@ class RequestPenelitian extends Model
 
     protected $table = 'requests'; // Sesuai dengan nama tabel di database
     protected $fillable = ['id_penelitian', 'id_mitra', 'keterangan'];
+
+    // Relasi ke Mitra
+    public function mitra()
+    {
+        return $this->belongsTo(Mitra::class, 'id_mitra');
+    }
+
+    // Relasi ke Penelitian
+    public function penelitian()
+    {
+        return $this->belongsTo(Penelitian::class, 'id_penelitian');
+    }
 }

@@ -36,7 +36,7 @@ class PenelitianController extends Controller
                          ->with('success', 'Luaran berhasil ditambahkan!');
     }
     
-    public function index()
+    public function index(Request $request)
     {
 
         $tingkat = Tingkat::all();
@@ -44,13 +44,29 @@ class PenelitianController extends Controller
         $dosens = Dosen::all();
         $mahasiswa  = Mahasiswa::all();
         $mitra = Mitra::all();
-        $penelitian = Penelitian::with([
-            'tingkat',
+        // Ambil filter semester dari request
+        $semester = $request->semester;
+        $penelitianQuery = Penelitian::with([
+            'tingkat', 
             'roadmap',
             'ketuaDosen',
             'anggotaPenelitian.dosen',
             'anggotaPenelitian.mahasiswa'
-        ])->paginate(10);
+        ]);
+        
+        if ($semester) {
+            // Cek apakah semester ganjil atau genap
+            [$tahun, $jenisSemester] = explode(' ', $semester);
+
+            if (strtolower($jenisSemester) == 'ganjil') {
+                $penelitianQuery->whereBetween('tanggal', ["$tahun-07-01", "$tahun-12-31"]);
+            } elseif (strtolower($jenisSemester) == 'genap') {
+                $tahunGenap = (int) $tahun + 1; // Semester genap berlangsung hingga tahun berikutnya
+                $penelitianQuery->whereBetween('tanggal', ["$tahunGenap-01-01", "$tahunGenap-06-30"]);
+            }
+        }
+
+        $penelitian = $penelitianQuery->paginate(10);
         return view('admin.penelitian.index', compact('penelitian', 'tingkat', 'roadmap', 'dosens', 'mitra', 'mahasiswa'));
     }
 

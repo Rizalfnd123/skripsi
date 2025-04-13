@@ -15,23 +15,30 @@ class LoginController extends Controller
      */
     public function login(Request $request)
 {
-    $credentials = $request->only('login', 'password'); // login bisa email atau username
+    $credentials = $request->only('login', 'password'); // login bisa email, username, atau nidn
 
-    // Coba login sebagai User (menggunakan email)
-    if (filter_var($credentials['login'], FILTER_VALIDATE_EMAIL)) {
-        if (Auth::attempt(['email' => $credentials['login'], 'password' => $credentials['password']])) {
-            $request->session()->regenerate(); // Regenerate session setelah login
-            return $this->redirectUser(Auth::user());
-        }
+// Coba login sebagai User (menggunakan email)
+if (filter_var($credentials['login'], FILTER_VALIDATE_EMAIL)) {
+    if (Auth::attempt(['email' => $credentials['login'], 'password' => $credentials['password']])) {
+        $request->session()->regenerate();
+        return $this->redirectUser(Auth::user());
     }
+}
 
-    // Coba login sebagai Mitra (menggunakan username)
-    if (Auth::guard('mitra')->attempt(['username' => $credentials['login'], 'password' => $credentials['password']])) {
-        $request->session()->regenerate(); // Regenerate session setelah login
+// Coba login sebagai Mitra (menggunakan username)
+if (Auth::guard('mitra')->attempt(['username' => $credentials['login'], 'password' => $credentials['password']])) {
+    $request->session()->regenerate();
+    return redirect('/mitra/dashboard');
+}
 
-        return redirect('/mitra/dashboard');
-    }
+// Coba login sebagai Dosen (menggunakan NIDN dan NIP)
+$dosen = \App\Models\Dosen::where('nidn', $credentials['login'])->first();
 
+if ($dosen && $credentials['password'] == $dosen->nip) {
+    Auth::guard('dosen')->login($dosen); // Login manual
+    $request->session()->regenerate();
+    return redirect('/dosen/dashboard');
+}
     return back()->withErrors(['login' => 'Username/email atau password salah']);
 }
 

@@ -12,46 +12,134 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-4 py-6">
     <!-- Card for Total Users -->
     <div class="bg-white shadow-md rounded-lg p-4">
-        <h3 class="text-xl font-semibold text-gray-700">Total Users</h3>
+        <h3 class="text-xl font-semibold text-gray-700">Total Penelitian</h3>
         {{-- <p class="text-3xl font-bold text-blue-600">{{ $totalUsers }}</p> --}}
     </div>
 
     <!-- Card for Total Jurnals -->
     <div class="bg-white shadow-md rounded-lg p-4">
-        <h3 class="text-xl font-semibold text-gray-700">Total Jurnals</h3>
+        <h3 class="text-xl font-semibold text-gray-700">Total Pengabdian</h3>
         {{-- <p class="text-3xl font-bold text-green-600">{{ $totalJurnals }}</p> --}}
     </div>
 
     <!-- Card for Today's Activities -->
     <div class="bg-white shadow-md rounded-lg p-4">
-        <h3 class="text-xl font-semibold text-gray-700">Today's Activities</h3>
+        <h3 class="text-xl font-semibold text-gray-700">Total Mitra</h3>
         {{-- <p class="text-3xl font-bold text-red-600">{{ $todaysActivities }}</p> --}}
     </div>
 </div>
 
-<!-- Data Table -->
-<div class="overflow-x-auto mt-6">
-    <table class="min-w-full bg-white border border-gray-200 rounded-lg">
-        <thead>
-            <tr class="bg-gray-200">
-                <th class="text-left px-4 py-2">No</th>
-                <th class="text-left px-4 py-2">Nama Guru</th>
-                <th class="text-left px-4 py-2">Mata Pelajaran</th>
-                <th class="text-left px-4 py-2">Kelas</th>
-                <th class="text-left px-4 py-2">Tanggal</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{-- @foreach($jurnals as $index => $jurnal)
-            <tr class="border-t border-gray-200">
-                <td class="px-4 py-2">{{ $index + 1 }}</td>
-                <td class="px-4 py-2">{{ $jurnal->guru->nama }}</td>
-                <td class="px-4 py-2">{{ $jurnal->mapel->nama }}</td>
-                <td class="px-4 py-2">{{ $jurnal->kelas->nama }}</td>
-                <td class="px-4 py-2">{{ $jurnal->tanggal }}</td>
-            </tr>
-            @endforeach --}}
-        </tbody>
-    </table>
-</div>
+<section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <h3 class="text-2xl md:text-3xl font-bold text-center mb-10">
+            Statistik Penelitian dan Pengabdian Selama Setahun
+        </h3>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Card Grafik Penelitian -->
+            <div class="bg-white shadow-md rounded-lg p-6">
+                <h4 class="text-xl font-semibold text-center mb-4">Penelitian</h4>
+                <div class="w-full max-w-md mx-auto">
+                    <canvas id="penelitianChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Card Grafik Pengabdian -->
+            <div class="bg-white shadow-md rounded-lg p-6">
+                <h4 class="text-xl font-semibold text-center mb-4">Pengabdian</h4>
+                <div class="w-full max-w-md mx-auto">
+                    <canvas id="pengabdianChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+        // Data dari Controller (Convert ke JSON)
+        const dataPenelitian = @json($dataPenelitian);
+        const dataPengabdian = @json($dataPengabdian);
+        const roadmapLabels = @json($roadmapLabels);
+
+        const chartColors = ['#ff6384', '#36a2eb', '#ffce56']; // Warna dataset
+
+        function createDataset(dataObject) {
+            return Object.keys(dataObject).map((roadmap, index) => ({
+                label: roadmap,
+                data: dataObject[roadmap],
+                borderColor: chartColors[index % chartColors.length],
+                backgroundColor: Chart.helpers.color(chartColors[index % chartColors.length]).alpha(
+                    0.5).rgbString(),
+                borderWidth: 2,
+                borderRadius: 5,
+                borderSkipped: false,
+            }));
+        }
+
+        // Inisialisasi Chart.js
+        const penelitianCtx = document.getElementById('penelitianChart').getContext('2d');
+        const pengabdianCtx = document.getElementById('pengabdianChart').getContext('2d');
+
+        new Chart(penelitianCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: createDataset(dataPenelitian)
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Statistik Penelitian Berdasarkan Roadmap'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        stepSize: 1, // Langkah skala 1
+                        ticks: {
+                            precision: 0 // Angka bulat saja (tanpa desimal)
+                        }
+                    }
+                }
+            }
+        });
+
+        new Chart(pengabdianCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: createDataset(dataPengabdian)
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Statistik Pengabdian Berdasarkan Roadmap'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        stepSize: 1, // Langkah skala 1
+                        ticks: {
+                            precision: 0 // Angka bulat saja (tanpa desimal)
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 @endsection

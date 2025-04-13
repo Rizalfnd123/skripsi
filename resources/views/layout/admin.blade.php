@@ -13,16 +13,34 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
+        @keyframes spreadDark {
+            0% {
+                transform: scale(0);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
+            background-image: url('{{ asset('../images/bg.jpg') }}');
+            background-size: cover;
+            background-position: center;
         }
+
     </style>
 </head>
 
-<body class="bg-gray-100 text-gray-800 transition-colors duration-300">
+<body class=" text-gray-800 transition-colors duration-300">
 
     <!-- Navbar -->
-    <nav class="bg-gray-200 text-gray-800 px-4 py-3 flex justify-between items-center shadow-lg">
+    <!-- Navbar -->
+    <nav
+        class="bg-gray-200 text-gray-800 px-4 py-3 flex justify-between items-center shadow-lg sticky top-0 w-full z-50">
         <div class="flex items-center">
             <button id="toggleSidebar" class="text-gray-800 focus:outline-none mr-4">
                 ☰
@@ -30,10 +48,6 @@
             <h1 class="text-xl font-semibold">SIPPMas</h1>
         </div>
         <div class="relative">
-            {{-- <button id="themeDropdownToggle"
-                class="bg-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400 transition duration-300">
-                🌗 Tema
-            </button> --}}
             <div id="themeDropdown"
                 class="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg hidden">
                 <button class="block w-full px-4 py-2 text-left hover:bg-gray-100" data-theme="light">🌞 Light</button>
@@ -48,80 +62,103 @@
     <div class="flex transition-all duration-300">
         <!-- Sidebar -->
         <div id="sidebar"
-            class="w-64 bg-gray-200 text-gray-800 fixed top-14 h-[calc(100vh-3.5rem)] z-40 shadow-lg -translate-x-64 transition-transform duration-300">
-            <ul>
-                <li class="p-2 mt-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4">
-                    <a href="{{ route('admin.dashboard') }}" class="flex items-center w-full">
+            class="w-50 h-200 bg-gray-100 text-gray-800 fixed top-13 h-[calc(100vh-3.5rem)] z-45 shadow-lg -translate-x-64 transition-transform duration-300">
+            <ul class="space-y-1 px-2 py-3">
+                <li class="p-1.5 flex items-center hover:bg-gray-400/20 rounded cursor-pointer">
+                    <a href="{{ route('admin.dashboard') }}" class="flex items-center w-full px-3 py-2 rounded">
                         <span class="material-icons text-gray-600 mr-2">home</span>
                         Beranda
                     </a>
                 </li>
 
                 <!-- User Dropdown -->
-                <!-- User Dropdown -->
-                <li class="relative p-2 ms-2 me-2">
+                <li class="relative">
                     <button type="button" onclick="toggleDropdown('user-menu', event)"
-                        class="flex items-center w-full hover:bg-gray-300 rounded p-2">
+                        class="flex items-center w-full hover:bg-gray-400/20 rounded px-3 py-2 transition ms-2">
                         <span class="material-icons text-gray-600 mr-2">people</span>
                         User
                         <span class="material-icons ml-auto">expand_more</span>
                     </button>
-                    <ul id="user-menu"
-                        class="hidden absolute left-0 top-full bg-white shadow-md rounded mt-1 w-48 z-50">
-                        <li class="p-2 hover:bg-gray-200">
-                            <a href="{{ route('dosen.index') }}" class="block w-full">Dosen</a>
+                    <ul id="user-menu" class="hidden bg-white shadow-md rounded mt-1 w-full">
+                        <li class="p-1.5 hover:bg-gray-200">
+                            <a href="{{ route('dosen.index') }}" class="flex items-center w-full px-3 py-2">
+                                <span class="material-icons text-gray-600 mr-2">people</span>
+                                Dosen
+                            </a>
                         </li>
-                        <li class="p-2 hover:bg-gray-200">
-                            <a href="{{ route('mahasiswa.index') }}" class="block w-full">Mahasiswa</a>
+                        <li class="p-1.5 hover:bg-gray-200">
+                            <a href="{{ route('mahasiswa.index') }}" class="flex items-center w-full px-3 py-2">
+                                <span class="material-icons text-gray-600 mr-2">people</span>
+                                Mahasiswa
+                            </a>
                         </li>
-                        <li class="p-2 hover:bg-gray-200">
-                            <a href="{{ route('mitra.index') }}" class="block w-full">Mitra</a>
+                        <li class="p-1.5 hover:bg-gray-200">
+                            <a href="{{ route('mitra.index') }}" class="flex items-center w-full px-3 py-2">
+                                <span class="material-icons text-gray-600 mr-2">people</span>
+                                Mitra
+                            </a>
                         </li>
                     </ul>
                 </li>
 
                 <!-- Data Umum Dropdown -->
-                <li class="relative p-2 ms-2 me-2">
+                <li class="relative">
                     <button type="button" onclick="toggleDropdown('data-umum', event)"
-                        class="flex items-center w-full hover:bg-gray-300 rounded p-2">
+                        class="flex items-center w-full hover:bg-gray-400/20 rounded px-3 py-2 transition ms-2">
                         <span class="material-icons text-gray-600 mr-2">storage</span>
                         Data Umum
                         <span class="material-icons ml-auto">expand_more</span>
                     </button>
-                    <ul id="data-umum"
-                        class="hidden absolute left-0 top-full bg-white shadow-md rounded mt-1 w-48 z-50">
-                        <li class="p-2 hover:bg-gray-200">
-                            <a href="{{ route('roadmap.index') }}" class="block w-full">Roadmap</a>
+                    <ul id="data-umum" class="hidden bg-white shadow-md rounded mt-1 w-full">
+                        <li class="p-1.5 hover:bg-gray-200">
+                            <a href="{{ route('roadmap.index') }}" class="flex items-center w-full px-3 py-2">
+                                <span class="material-icons text-gray-600 mr-2">storage</span>
+                                Roadmap
+                            </a>
                         </li>
-                        <li class="p-2 hover:bg-gray-200">
-                            <a href="{{ route('tingkat.index') }}" class="block w-full">Pendanaan</a>
+                        <li class="p-1.5 hover:bg-gray-200">
+                            <a href="{{ route('tingkat.index') }}" class="flex items-center w-full px-3 py-2">
+                                <span class="material-icons text-gray-600 mr-2">storage</span>
+                                Pendanaan
+                            </a>
+                        </li>
+                        <li class="p-1.5 hover:bg-gray-200">
+                            <a href="{{ route('semester.index') }}" class="flex items-center w-full px-3 py-2">
+                                <span class="material-icons text-gray-600 mr-2">storage</span>
+                                Semester
+                            </a>
                         </li>
                     </ul>
                 </li>
 
-
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4 mt-1">
-                    <a href="{{ route('berita.index') }}" class="flex items-center w-full">
+                <li class="p-1.5 flex items-center hover:bg-gray-400/20 rounded cursor-pointer">
+                    <a href="{{ route('berita.index') }}" class="flex items-center w-full px-3 py-2 rounded">
                         <span class="material-icons text-gray-600 mr-2">people</span>
                         Berita
                     </a>
                 </li>
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4 mt-3">
-                    <a href="{{ route('penelitian.index') }}" class="flex items-center w-full">
+                <li class="p-1.5 flex items-center hover:bg-gray-400/20 rounded cursor-pointer">
+                    <a href="{{ route('penelitian.index') }}" class="flex items-center w-full px-3 py-2 rounded">
                         <span class="material-icons text-gray-600 mr-2">book</span>
                         Penelitian
                     </a>
                 </li>
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4 mt-3">
-                    <a href="{{ route('pengabdian.index') }}" class="flex items-center w-full">
+                <li class="p-1.5 flex items-center hover:bg-gray-400/20 rounded cursor-pointer">
+                    <a href="{{ route('pengabdian.index') }}" class="flex items-center w-full px-3 py-2 rounded">
                         <span class="material-icons text-gray-600 mr-2">volunteer_activism</span>
                         Pengabdian
                     </a>
                 </li>
-                <li class="p-2 flex items-center hover:bg-gray-300 rounded cursor-pointer ms-4 me-4 mt-3">
-                    <span class="material-icons text-gray-600 mr-2">logout</span>
-                    <form method="POST" action="{{ route('logout') }}" class="inline">
+                <li class="p-1.5 flex items-center hover:bg-gray-400/20 rounded cursor-pointer">
+                    <a href="{{ route('requestadmin.index') }}" class="flex items-center w-full px-3 py-2 rounded">
+                        <span class="material-icons text-gray-600 mr-2">folder</span>
+                        Request
+                    </a>
+                </li>
+                <li class="p-1.5 flex items-center hover:bg-gray-400/20 rounded cursor-pointer">
+                    <form method="POST" action="{{ route('logout') }}" class="flex items-center w-full px-3 py-2">
                         @csrf
+                        <span class="material-icons text-gray-600 mr-2">logout</span>
                         <button type="submit" class="text-left w-full">Logout</button>
                     </form>
                 </li>

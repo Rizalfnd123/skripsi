@@ -38,36 +38,60 @@ class PengabdianController extends Controller
 
     public function index(Request $request)
     {
-
         $tingkat = Tingkat::all();
-        $roadmap = Roadmap::all();
+        $roadmaps = Roadmap::all();
         $dosens = Dosen::all();
-        $mahasiswa  = Mahasiswa::all();
+        $mahasiswa = Mahasiswa::all();
         $mitra = Mitra::all();
-        // Ambil filter semester dari request
-        $semester = $request->semester;
-        $pengabdianQuery = Pengabdian::with([
-            'tingkat', 
-            'roadmap',
-            'ketuaDosen',
-            'anggotaPengabdian.dosen',
-            'anggotaPengabdian.mahasiswa'
-        ]);
-        
-        if ($semester) {
-            // Cek apakah semester ganjil atau genap
-            [$tahun, $jenisSemester] = explode(' ', $semester);
 
-            if (strtolower($jenisSemester) == 'ganjil') {
-                $pengabdianQuery->whereBetween('tanggal', ["$tahun-07-01", "$tahun-12-31"]);
-            } elseif (strtolower($jenisSemester) == 'genap') {
-                $tahunGenap = (int) $tahun + 1; // Semester genap berlangsung hingga tahun berikutnya
-                $pengabdianQuery->whereBetween('tanggal', ["$tahunGenap-01-01", "$tahunGenap-06-30"]);
+        $tahun = $request->tahun;
+
+        // Ambil list tahun unik dari tabel pengabdian
+        $tahunList = pengabdian::selectRaw('YEAR(tanggal) as tahun')
+            ->distinct()
+            ->orderByDesc('tahun')
+            ->pluck('tahun');
+
+        $pengabdiansPerRoadmap = [];
+
+        foreach ($roadmaps as $roadmap) {
+            $query = Pengabdian::with([
+                'tingkat',
+                'roadmap',
+                'ketuaDosen',
+                'anggotapengabdian.dosen',
+                'anggotapengabdian.mahasiswa'
+            ])->where('id_roadmap', $roadmap->id);
+
+            // Filter berdasarkan tahun
+            if ($tahun) {
+                $query->whereYear('tanggal', $tahun);
             }
+
+            // Paginasi per-roadmap
+            $pengabdiansPerRoadmap[$roadmap->id] = $query->paginate(10, ['*'], 'page_roadmap_' . $roadmap->id);
+        }
+        $statistikRoadmap = [];
+
+        foreach ($roadmaps as $rm) {
+            $count = Pengabdian::where('id_roadmap', $rm->id)
+                ->when($tahun, fn($q) => $q->whereYear('tanggal', $tahun))
+                ->count();
+            $statistikRoadmap[$rm->jenis_roadmap] = $count;
         }
 
-        $pengabdian = $pengabdianQuery->paginate(10);
-        return view('admin.pengabdian.index', compact('pengabdian', 'tingkat', 'roadmap', 'dosens', 'mitra', 'mahasiswa'));
+
+        return view('admin.pengabdian.index', [
+            'pengabdiansPerRoadmap' => $pengabdiansPerRoadmap,
+            'tingkat' => $tingkat,
+            'roadmap' => $roadmaps,
+            'dosens' => $dosens,
+            'mahasiswa' => $mahasiswa,
+            'mitra' => $mitra,
+            'tahun' => $tahun,
+            'tahunList' => $tahunList,
+            'statistikRoadmap' => $statistikRoadmap,
+        ]);
     }
 
     public function create()

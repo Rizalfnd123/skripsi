@@ -3,53 +3,87 @@
 namespace App\Http\Controllers;
 
 
-use App\Models\Penelitian;
-use App\Models\Tingkat;
-use App\Models\Roadmap;
 use App\Models\Dosen;
-use App\Models\Luaran;
-use App\Models\Mahasiswa;
 use App\Models\Mitra;
+use App\Models\Luaran;
+use App\Models\Roadmap;
+use App\Models\Tingkat;
+use App\Models\Mahasiswa;
+use App\Models\Penelitian;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PenelitianDosenController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
-    {
 
-        $tingkat = Tingkat::all();
-        $roadmap = Roadmap::all();
-        $dosens = Dosen::all();
-        $mahasiswa  = Mahasiswa::all();
-        $mitra = Mitra::all();
-        // Ambil filter semester dari request
-        $semester = $request->semester;
-        $penelitianQuery = Penelitian::with([
-            'tingkat',
-            'roadmap',
-            'ketuaDosen',
-            'anggotaPenelitian.dosen',
-            'anggotaPenelitian.mahasiswa'
-        ]);
+     public function index(Request $request)
+     {
+         $tingkat = Tingkat::all();
+         $roadmap = Roadmap::all();
+         $dosens = Dosen::all();
+         $mahasiswa = Mahasiswa::all();
+         $mitra = Mitra::all();
+     
+         $dosenLogin = Auth::guard('dosen')->user();
+         $tahun = $request->tahun;
+     
+         // Ambil daftar tahun unik dari tanggal penelitian
+         $tahunList = Penelitian::selectRaw('YEAR(tanggal) as tahun')
+             ->distinct()
+             ->orderByDesc('tahun')
+             ->pluck('tahun');
+     
+         // Data penelitian dikelompokkan per roadmap
+         $penelitiansPerRoadmap = [];
+     
+         foreach ($roadmap as $rm) {
+             $query = Penelitian::with([
+                 'tingkat',
+                 'roadmap',
+                 'ketuaDosen',
+                 'anggotaPenelitian.dosen',
+                 'anggotaPenelitian.mahasiswa'
+             ])
+             ->where('id_roadmap', $rm->id)
+             ->where(function ($q) use ($dosenLogin) {
+                 $q->where('ketua', $dosenLogin->id)
+                   ->orWhereHas('anggotaPenelitian', function ($q2) use ($dosenLogin) {
+                       $q2->where('anggota_id', $dosenLogin->id)->where('anggota_type', 'Dosen');
+                   });
+             });
+     
+             if ($tahun) {
+                 $query->whereYear('tanggal', $tahun);
+             }
+     
+             $penelitiansPerRoadmap[$rm->id] = $query->paginate(10, ['*'], 'page_roadmap_' . $rm->id);
+         }
+         $chartData = [
+            'labels' => $roadmap->pluck('jenis_roadmap'),
+            'jumlahPenelitian' => $roadmap->map(function ($rm) use ($dosenLogin, $tahun) {
+                $query = Penelitian::where('id_roadmap', $rm->id)
+                    ->where(function ($q) use ($dosenLogin) {
+                        $q->where('ketua', $dosenLogin->id)
+                          ->orWhereHas('anggotaPenelitian', function ($q2) use ($dosenLogin) {
+                              $q2->where('anggota_id', $dosenLogin->id)->where('anggota_type', 'Dosen');
+                          });
+                    });
+                if ($tahun) {
+                    $query->whereYear('tanggal', $tahun);
+                }
+                return $query->count();
+            }),
+        ];
         
-        if ($semester) {
-            // Cek apakah semester ganjil atau genap
-            [$tahun, $jenisSemester] = explode(' ', $semester);
-
-            if (strtolower($jenisSemester) == 'ganjil') {
-                $penelitianQuery->whereBetween('tanggal', ["$tahun-07-01", "$tahun-12-31"]);
-            } elseif (strtolower($jenisSemester) == 'genap') {
-                $tahunGenap = (int) $tahun + 1; // Semester genap berlangsung hingga tahun berikutnya
-                $penelitianQuery->whereBetween('tanggal', ["$tahunGenap-01-01", "$tahunGenap-06-30"]);
-            }
-        }
-
-        $penelitian = $penelitianQuery->paginate(10);
-        return view('dosen.penelitian.index', compact('penelitian', 'tingkat', 'roadmap', 'dosens', 'mitra', 'mahasiswa'));
-    }
+         return view('dosen.penelitian.index', compact(
+             'tingkat', 'roadmap', 'dosens', 'mahasiswa', 'mitra',
+             'tahunList', 'tahun', 'penelitiansPerRoadmap', 'chartData'
+         ));
+     }     
 
     /**
      * Show the form for creating a new resource.
@@ -153,62 +187,62 @@ class PenelitianDosenController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, $id)
-{
-    // Validasi input
-    $request->validate([
-        'judul' => 'required|string|max:255',
-        'tanggal' => 'required|date',
-        'id_tingkat' => 'required|exists:tingkat,id',
-        'id_roadmap' => 'required|exists:roadmap,id',
-        'ketua' => 'required|exists:dosens,id',
-        'anggota_dosen' => 'nullable|array',
-        'anggota_dosen.*' => 'exists:dosens,id',
-        'anggota_mahasiswa' => 'nullable|array',
-        'anggota_mahasiswa.*' => 'exists:mahasiswa,id_mahasiswa',
-    ]);
+    {
+        // Validasi input
+        $request->validate([
+            'judul' => 'required|string|max:255',
+            'tanggal' => 'required|date',
+            'id_tingkat' => 'required|exists:tingkat,id',
+            'id_roadmap' => 'required|exists:roadmap,id',
+            'ketua' => 'required|exists:dosens,id',
+            'anggota_dosen' => 'nullable|array',
+            'anggota_dosen.*' => 'exists:dosens,id',
+            'anggota_mahasiswa' => 'nullable|array',
+            'anggota_mahasiswa.*' => 'exists:mahasiswa,id_mahasiswa',
+        ]);
 
-    // Cari penelitian yang akan diperbarui
-    $penelitian = Penelitian::findOrFail($id);
+        // Cari penelitian yang akan diperbarui
+        $penelitian = Penelitian::findOrFail($id);
 
-    // Update data penelitian
-    $penelitian->update([
-        'judul' => $request->judul,
-        'tanggal' => $request->tanggal,
-        'id_tingkat' => $request->id_tingkat,
-        'id_roadmap' => $request->id_roadmap,
-        'ketua' => $request->ketua,
-    ]);
+        // Update data penelitian
+        $penelitian->update([
+            'judul' => $request->judul,
+            'tanggal' => $request->tanggal,
+            'id_tingkat' => $request->id_tingkat,
+            'id_roadmap' => $request->id_roadmap,
+            'ketua' => $request->ketua,
+        ]);
 
-    // Hapus anggota yang lama dan tambahkan yang baru
-    // Menghapus anggota dosen lama
-    $penelitian->anggotaPenelitian()->where('anggota_type', 'Dosen')->delete();
+        // Hapus anggota yang lama dan tambahkan yang baru
+        // Menghapus anggota dosen lama
+        $penelitian->anggotaPenelitian()->where('anggota_type', 'Dosen')->delete();
 
-    // Menghapus anggota mahasiswa lama
-    $penelitian->anggotaPenelitian()->where('anggota_type', 'Mahasiswa')->delete();
+        // Menghapus anggota mahasiswa lama
+        $penelitian->anggotaPenelitian()->where('anggota_type', 'Mahasiswa')->delete();
 
-    // Menambahkan anggota dosen baru
-    if ($request->has('anggota_dosen')) {
-        foreach ($request->anggota_dosen as $dosen_id) {
-            $penelitian->anggotaPenelitian()->create([
-                'anggota_id' => $dosen_id,
-                'anggota_type' => 'Dosen',
-            ]);
+        // Menambahkan anggota dosen baru
+        if ($request->has('anggota_dosen')) {
+            foreach ($request->anggota_dosen as $dosen_id) {
+                $penelitian->anggotaPenelitian()->create([
+                    'anggota_id' => $dosen_id,
+                    'anggota_type' => 'Dosen',
+                ]);
+            }
         }
-    }
 
-    // Menambahkan anggota mahasiswa baru
-    if ($request->has('anggota_mahasiswa')) {
-        foreach ($request->anggota_mahasiswa as $mahasiswa_id) {
-            $penelitian->anggotaPenelitian()->create([
-                'anggota_id' => $mahasiswa_id,
-                'anggota_type' => 'Mahasiswa',
-            ]);
+        // Menambahkan anggota mahasiswa baru
+        if ($request->has('anggota_mahasiswa')) {
+            foreach ($request->anggota_mahasiswa as $mahasiswa_id) {
+                $penelitian->anggotaPenelitian()->create([
+                    'anggota_id' => $mahasiswa_id,
+                    'anggota_type' => 'Mahasiswa',
+                ]);
+            }
         }
-    }
 
-    // Redirect dengan pesan sukses
-    return redirect()->route('penelitian-dosen.index')->with('success', 'Penelitian berhasil diperbarui');
-}
+        // Redirect dengan pesan sukses
+        return redirect()->route('penelitian-dosen.index')->with('success', 'Penelitian berhasil diperbarui');
+    }
 
     /**
      * Remove the specified resource from storage.
@@ -226,18 +260,18 @@ class PenelitianDosenController extends Controller
             'tipe' => 'required|in:jurnal,HKI,produk,sertifikat',
             'dokumen' => 'required|file|mimes:pdf,docx,jpg,png|max:10240',
         ]);
-    
+
         $penelitian = Penelitian::findOrFail($penelitianId);
-    
+
         $dokumenPath = $request->file('dokumen')->store('luaran_documents', 'public');
-    
+
         Luaran::create([
             'penelitian_id' => $penelitian->id,
             'tipe' => $request->tipe,
             'dokumen' => $dokumenPath,
         ]);
-    
+
         return redirect()->route('penelitian-dosen.edit', $penelitian->id)
-                         ->with('success', 'Luaran berhasil ditambahkan!');
+            ->with('success', 'Luaran berhasil ditambahkan!');
     }
 }

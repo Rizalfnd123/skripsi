@@ -18,11 +18,11 @@
         <tbody>
             @foreach ($tingkats as $tingkat)
                 <tr>
-                    <td class="border px-4 py-2">{{ $tingkat->id_tingkat }}</td>
+                    <td class="border px-4 py-2">{{ $tingkat->id }}</td>
                     <td class="border px-4 py-2">{{ $tingkat->jenis_tingkat }}</td>
                     <td class="border px-4 py-2">
-                        <a href="{{ route('tingkat.edit', $tingkat->id_tingkat) }}" class="bg-yellow-500 text-white px-4 py-2 rounded">Edit</a>
-                        <form action="{{ route('tingkat.destroy', $tingkat->id_tingkat) }}" method="POST" style="display:inline;">
+                        <a href="{{ route('tingkat.edit', $tingkat->id) }}" class="bg-yellow-500 text-white px-4 py-2 rounded">Edit</a>
+                        <form action="{{ route('tingkat.destroy', $tingkat->id) }}" method="POST" style="display:inline;">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded">Hapus</button>

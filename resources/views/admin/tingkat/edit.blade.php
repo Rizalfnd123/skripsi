@@ -5,7 +5,7 @@
 @section('content')
     <h2 class="text-2xl font-bold mb-4">Edit Data Pendanaan</h2>
 
-    <form action="{{ route('tingkat.update', $tingkat->id_tingkat) }}" method="POST" class="space-y-4">
+    <form action="{{ route('tingkat.update', $tingkat->id) }}" method="POST" class="space-y-4">
         @csrf
         @method('PUT')
 

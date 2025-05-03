@@ -21,14 +21,14 @@
         <tbody>
             @foreach ($mitras as $mitra)
                 <tr>
-                    <td class="border px-4 py-2">{{ $mitra->id_mitra }}</td>
+                    <td class="border px-4 py-2">{{ $mitra->id }}</td>
                     <td class="border px-4 py-2">{{ $mitra->nama }}</td>
                     <td class="border px-4 py-2">{{ $mitra->no_hp }}</td>
                     <td class="border px-4 py-2">{{ $mitra->username }}</td>
                     <td class="border px-4 py-2">{{ $mitra->status }}</td>
                     <td class="border px-4 py-2">
-                        <a href="{{ route('mitra.edit', $mitra->id_mitra) }}" class="bg-yellow-500 text-white px-4 py-2 rounded">Edit</a>
-                        <form action="{{ route('mitra.destroy', $mitra->id_mitra) }}" method="POST" style="display:inline;">
+                        <a href="{{ route('mitra.edit', $mitra->id) }}" class="bg-yellow-500 text-white px-4 py-2 rounded">Edit</a>
+                        <form action="{{ route('mitra.destroy', $mitra->id) }}" method="POST" style="display:inline;">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded">Hapus</button>

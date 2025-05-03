@@ -5,7 +5,7 @@
 @section('content')
     <h2 class="text-2xl font-bold mb-4">Edit Data Mitra</h2>
 
-    <form action="{{ route('mitra.update', $mitra->id_mitra) }}" method="POST" class="space-y-4">
+    <form action="{{ route('mitra.update', $mitra->id) }}" method="POST" class="space-y-4">
         @csrf
         @method('PUT')
         <div>

@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 
-use App\Models\AnggotaPengabdian;
-use App\Models\pengabdian;
-use App\Models\Tingkat;
-use App\Models\Roadmap;
 use App\Models\Dosen;
-use App\Models\Luaran;
-use App\Models\Mahasiswa;
 use App\Models\Mitra;
+use App\Models\Luaran;
+use App\Models\Roadmap;
+use App\Models\Tingkat;
+use App\Models\Mahasiswa;
+use App\Models\pengabdian;
 use Illuminate\Http\Request;
+use App\Models\AnggotaPengabdian;
+use Illuminate\Support\Facades\Auth;
 
 class PengabdianDosenController extends Controller
 {
@@ -19,38 +20,72 @@ class PengabdianDosenController extends Controller
      * Display a listing of the resource.
      */
     public function index(Request $request)
-    {
+{
+    $tingkat = Tingkat::all();
+    $roadmap = Roadmap::all();
+    $dosens = Dosen::all();
+    $mahasiswa = Mahasiswa::all();
+    $mitra = Mitra::all();
 
-        $tingkat = Tingkat::all();
-        $roadmap = Roadmap::all();
-        $dosens = Dosen::all();
-        $mahasiswa  = Mahasiswa::all();
-        $mitra = Mitra::all();
-        // Ambil filter semester dari request
-        $semester = $request->semester;
-        $pengabdianQuery = Pengabdian::with([
-            'tingkat', 
+    $dosenLogin = Auth::guard('dosen')->user();
+    $tahun = $request->tahun;
+
+    // Ambil daftar tahun unik dari tanggal pengabdian
+    $tahunList = Pengabdian::selectRaw('YEAR(tanggal) as tahun')
+        ->distinct()
+        ->orderByDesc('tahun')
+        ->pluck('tahun');
+
+    // Data pengabdian dikelompokkan per roadmap
+    $pengabdianPerRoadmap = [];
+
+    foreach ($roadmap as $rm) {
+        $query = Pengabdian::with([
+            'tingkat',
             'roadmap',
             'ketuaDosen',
             'anggotaPengabdian.dosen',
             'anggotaPengabdian.mahasiswa'
-        ]);
-        
-        if ($semester) {
-            // Cek apakah semester ganjil atau genap
-            [$tahun, $jenisSemester] = explode(' ', $semester);
+        ])
+        ->where('id_roadmap', $rm->id)
+        ->where(function ($q) use ($dosenLogin) {
+            $q->where('ketua', $dosenLogin->id)
+              ->orWhereHas('anggotaPengabdian', function ($q2) use ($dosenLogin) {
+                  $q2->where('anggota_id', $dosenLogin->id)
+                      ->where('anggota_type', 'Dosen');
+              });
+        });
 
-            if (strtolower($jenisSemester) == 'ganjil') {
-                $pengabdianQuery->whereBetween('tanggal', ["$tahun-07-01", "$tahun-12-31"]);
-            } elseif (strtolower($jenisSemester) == 'genap') {
-                $tahunGenap = (int) $tahun + 1; // Semester genap berlangsung hingga tahun berikutnya
-                $pengabdianQuery->whereBetween('tanggal', ["$tahunGenap-01-01", "$tahunGenap-06-30"]);
-            }
+        if ($tahun) {
+            $query->whereYear('tanggal', $tahun);
         }
 
-        $pengabdian = $pengabdianQuery->paginate(10);
-        return view('dosen.pengabdian.index', compact('pengabdian', 'tingkat', 'roadmap', 'dosens', 'mitra', 'mahasiswa'));
+        // Paginate per roadmap, gunakan page unik agar tidak konflik
+        $pengabdianPerRoadmap[$rm->id] = $query->paginate(10, ['*'], 'page_roadmap_' . $rm->id);
     }
+    $chartData = [
+        'labels' => $roadmap->pluck('jenis_roadmap'),
+        'jumlahPengabdian' => $roadmap->map(function ($rm) use ($dosenLogin, $tahun) {
+            $query = Pengabdian::where('id_roadmap', $rm->id)
+                ->where(function ($q) use ($dosenLogin) {
+                    $q->where('ketua', $dosenLogin->id)
+                      ->orWhereHas('anggotaPengabdian', function ($q2) use ($dosenLogin) {
+                          $q2->where('anggota_id', $dosenLogin->id)->where('anggota_type', 'Dosen');
+                      });
+                });
+            if ($tahun) {
+                $query->whereYear('tanggal', $tahun);
+            }
+            return $query->count();
+        }),
+    ];
+
+    return view('dosen.pengabdian.index', compact(
+        'tingkat', 'roadmap', 'dosens', 'mahasiswa', 'mitra',
+        'tahunList', 'tahun', 'pengabdianPerRoadmap','chartData'
+    ));
+}
+
 
     /**
      * Show the form for creating a new resource.

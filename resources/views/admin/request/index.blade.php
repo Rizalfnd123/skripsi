@@ -21,8 +21,10 @@
                             <th class="py-3 px-4 text-left">Tanggal</th>
                             <th class="py-3 px-4 text-left">Mitra</th>
                             <th class="py-3 px-4 text-left">No HP</th>
-                            <th class="py-3 px-4 text-left">Judul Penelitian</th>
-                            <th class="py-3 px-4 text-left">Keterangan</th>
+                            <th class="py-3 px-4 text-left">Masalah</th>
+                            <th class="py-3 px-4 text-left">Harapan</th>
+                            <th class="py-3 px-4 text-left">Domain</th>
+                            <th class="py-3 px-4 text-left">Jenis Pengabdian</th>
                             <th class="py-3 px-4 text-left">Status</th>
                         </tr>
                     </thead>
@@ -33,8 +35,10 @@
                                 <td class="py-3 px-4">{{ \Carbon\Carbon::parse($request->created_at)->translatedFormat('l, d F Y') }}</td>
                                 <td class="py-3 px-4">{{ $request->mitra->nama ?? 'Tidak Ada' }}</td>
                                 <td class="py-3 px-4">{{ $request->mitra->no_hp }}</td>
-                                <td class="py-3 px-4">{{ $request->penelitian->judul ?? 'Tidak Ada' }}</td>
-                                <td class="py-3 px-4">{{ $request->keterangan }}</td>
+                                <td class="py-3 px-4">{{ $request->masalah }}</td>
+                                <td class="py-3 px-4">{{ $request->harapan ?? 'Tidak Ada' }}</td>
+                                <td class="py-3 px-4">{{ $request->domain ?? 'Tidak Ada' }}</td>
+                                <td class="py-3 px-4">{{ $request->jenis_pengabdian ?? 'Tidak Ada' }}</td>
                                 <td class="py-3 px-4">
                                     <select
                                         class="status-dropdown bg-gray-200 text-gray-700 text-sm font-semibold px-3 py-2 rounded border border-gray-300 focus:ring focus:ring-green-300 transition"

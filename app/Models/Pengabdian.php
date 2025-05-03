@@ -46,9 +46,8 @@ class Pengabdian extends Model
         return $this->hasMany(AnggotaPengabdian::class, 'id_pengabdian', 'id');
     }
 
-    // public function luarans()
-    // {
-    //     return $this->hasMany(Luaran::class, 'penelitian_id', 'id');
-    // }
-
+    public function luarans()
+    {
+        return $this->morphMany(Luaran::class, 'luarable');
+    }
 }

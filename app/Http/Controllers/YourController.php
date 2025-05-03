@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use App\Models\Mitra;
 use App\Models\Berita;
 use App\Models\Roadmap;
 use App\Models\Tingkat;
@@ -76,55 +77,79 @@ class YourController extends Controller
         ));
     }
 
-    public function adminhome()
-    {
-        $beritas = Berita::latest()->get();
-        $roadmaps = Roadmap::all();
-        $tingkats = Tingkat::all();
+    public function adminhome(Request $request)
+{
+    $beritas = Berita::latest()->get();
+    $roadmaps = Roadmap::all();
+    $tingkats = Tingkat::all();
+    $penelitian = Penelitian::count();
+    $pengabdian = Pengabdian::count();
+    $mitra = Mitra::count();
 
-        // Ambil roadmap yang tersedia
-        $roadmapLabels = Roadmap::pluck('jenis_roadmap')->toArray();
+    $selectedYear = $request->get('tahun', date('Y')); // Default tahun sekarang
 
-        // Ambil data penelitian berdasarkan roadmap dan bulan
-        $penelitianStats = Penelitian::selectRaw('MONTH(tanggal) as bulan, id_roadmap, COUNT(*) as total')
-            ->groupBy('bulan', 'id_roadmap')
-            ->get();
+    // Ambil roadmap yang tersedia
+    $roadmapLabels = Roadmap::pluck('jenis_roadmap')->toArray();
 
-        // Ambil data pengabdian berdasarkan roadmap dan bulan
-        $pengabdianStats = Pengabdian::selectRaw('MONTH(tanggal) as bulan, id_roadmap, COUNT(*) as total')
-            ->groupBy('bulan', 'id_roadmap')
-            ->get();
+    // Ambil data penelitian dan pengabdian berdasarkan tahun yang dipilih
+    $penelitianStats = Penelitian::selectRaw('MONTH(tanggal) as bulan, id_roadmap, COUNT(*) as total')
+        ->whereYear('tanggal', $selectedYear)
+        ->groupBy('bulan', 'id_roadmap')
+        ->get();
 
-        // Data untuk frontend (ubah ke format yang cocok untuk Chart.js)
-        $dataPenelitian = [];
-        $dataPengabdian = [];
+    $pengabdianStats = Pengabdian::selectRaw('MONTH(tanggal) as bulan, id_roadmap, COUNT(*) as total')
+        ->whereYear('tanggal', $selectedYear)
+        ->groupBy('bulan', 'id_roadmap')
+        ->get();
 
-        foreach ($roadmaps as $roadmap) {
-            $dataPenelitian[$roadmap->jenis_roadmap] = array_fill(0, 12, 0);
-            $dataPengabdian[$roadmap->jenis_roadmap] = array_fill(0, 12, 0);
-        }
+    // Siapkan struktur data untuk chart
+    $dataPenelitian = [];
+    $dataPengabdian = [];
+    $totalPenelitianPerRoadmap = [];
+    $totalPengabdianPerRoadmap = [];
 
-        foreach ($penelitianStats as $stat) {
-            $roadmapName = Roadmap::find($stat->id_roadmap)?->jenis_roadmap;
-            if ($roadmapName) {
-                $dataPenelitian[$roadmapName][$stat->bulan - 1] = $stat->total;
-            }
-        }
-
-        foreach ($pengabdianStats as $stat) {
-            $roadmapName = Roadmap::find($stat->id_roadmap)?->jenis_roadmap;
-            if ($roadmapName) {
-                $dataPengabdian[$roadmapName][$stat->bulan - 1] = $stat->total;
-            }
-        }
-
-        return view('admin.dashboard', compact(
-            'beritas',
-            'roadmaps',
-            'tingkats',
-            'dataPenelitian',
-            'dataPengabdian',
-            'roadmapLabels'
-        ));
+    foreach ($roadmaps as $roadmap) {
+        $label = $roadmap->jenis_roadmap;
+        $dataPenelitian[$label] = array_fill(0, 12, 0);
+        $dataPengabdian[$label] = array_fill(0, 12, 0);
+        $totalPenelitianPerRoadmap[$label] = 0;
+        $totalPengabdianPerRoadmap[$label] = 0;
     }
+
+    foreach ($penelitianStats as $stat) {
+        $roadmapName = Roadmap::find($stat->id_roadmap)?->jenis_roadmap;
+        if ($roadmapName) {
+            $dataPenelitian[$roadmapName][$stat->bulan - 1] = $stat->total;
+            $totalPenelitianPerRoadmap[$roadmapName] += $stat->total;
+        }
+    }
+
+    foreach ($pengabdianStats as $stat) {
+        $roadmapName = Roadmap::find($stat->id_roadmap)?->jenis_roadmap;
+        if ($roadmapName) {
+            $dataPengabdian[$roadmapName][$stat->bulan - 1] = $stat->total;
+            $totalPengabdianPerRoadmap[$roadmapName] += $stat->total;
+        }
+    }
+
+    // Ambil daftar tahun untuk dropdown filter
+    $tahunList = Pengabdian::selectRaw('YEAR(tanggal) as tahun')->distinct()->pluck('tahun')->toArray();
+
+    return view('admin.dashboard', compact(
+        'beritas',
+        'roadmaps',
+        'tingkats',
+        'mitra',
+        'penelitian',
+        'dataPenelitian',
+        'pengabdian',
+        'dataPengabdian',
+        'roadmapLabels',
+        'totalPenelitianPerRoadmap',
+        'totalPengabdianPerRoadmap',
+        'tahunList',
+        'selectedYear'
+    ));
+}
+
 }

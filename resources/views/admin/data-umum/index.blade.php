@@ -4,20 +4,20 @@
 
 @section('breadcrumbs')
 <div class="w-full px-2">
-    <h2 class="text-2xl font-bold">Data Roadmap</h2>
+    <h2 class="text-2xl font-bold">Data Grup Riset</h2>
 </div>
 @endsection
 
 @section('content')
 <div class="flex justify-between items-center mb-4">
-    <a href="{{ route('roadmap.create') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Tambah Roadmap</a>
+    <a href="{{ route('roadmap.create') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Tambah Grup Riset</a>
 </div>
 
 <table class="w-full border-collapse border border-gray-300">
     <thead>
         <tr>
             <th class="border border-gray-300 px-4 py-2">No</th>
-            <th class="border border-gray-300 px-4 py-2">Jenis Roadmap</th>
+            <th class="border border-gray-300 px-4 py-2">Jenis Grup Riset</th>
             <th class="border border-gray-300 px-4 py-2">Aksi</th>
         </tr>
     </thead>

@@ -48,6 +48,6 @@ class Penelitian extends Model
 
     public function luarans()
     {
-        return $this->hasMany(Luaran::class, 'penelitian_id', 'id');
+        return $this->morphMany(Luaran::class, 'luarable');
     }
 }

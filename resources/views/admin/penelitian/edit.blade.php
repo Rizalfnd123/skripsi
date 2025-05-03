@@ -91,7 +91,7 @@
                 <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Update</button>
             </form>
             <!-- Form Tambah Luaran -->
-            <div class="bg-white shadow-md rounded-lg p-6 mt-8">
+            {{-- <div class="bg-white shadow-md rounded-lg p-6 mt-8">
                 <h2 class="text-2xl font-semibold text-gray-700 mb-4">Tambah Luaran</h2>
                 <form action="{{ route('penelitian.luaran.store', $penelitian->id) }}" method="POST"
                     enctype="multipart/form-data" class="space-y-4">
@@ -115,49 +115,7 @@
                         Simpan
                     </button>
                 </form>
-            </div>
-
-            @if (!$penelitian->luarans->isEmpty())
-                <div class="bg-white shadow-md rounded-lg p-6 mt-8">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Daftar Luaran</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full border border-gray-300 bg-white shadow-md rounded-lg">
-                            <thead>
-                                <tr class="bg-gray-100 text-gray-600 text-left uppercase text-sm">
-                                    <th class="py-3 px-4 border-b">Jenis</th>
-                                    <th class="py-3 px-4 border-b">Preview</th>
-                                    <th class="py-3 px-4 border-b">Nama File</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($penelitian->luarans as $luaran)
-                                    <tr class="border-b hover:bg-gray-50 transition">
-                                        <td class="py-3 px-4 font-medium text-gray-700">{{ ucfirst($luaran->tipe) }}</td>
-                                        <td class="py-3 px-4">
-                                            @if (in_array(pathinfo($luaran->dokumen, PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png', 'gif', 'pdf']))
-                                                <a href="{{ asset('storage/' . $luaran->dokumen) }}" target="_blank"
-                                                    class="flex items-center space-x-2">
-                                                    <img src="{{ asset('storage/' . $luaran->dokumen) }}" alt="Preview"
-                                                        class="h-12 w-12 object-cover rounded-lg shadow-sm">
-                                                </a>
-                                            @else
-                                                <span class="text-gray-500">Tidak tersedia</span>
-                                            @endif
-                                        </td>
-                                        <td class="py-3 px-4">
-                                            <a href="{{ asset('storage/' . $luaran->dokumen) }}" target="_blank"
-                                                class="text-blue-500 hover:text-blue-600 underline font-medium">
-                                                {{ basename($luaran->dokumen) }}
-                                            </a>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            @endif
-
+            </div> --}}
         </div>
     </div>
     <script>

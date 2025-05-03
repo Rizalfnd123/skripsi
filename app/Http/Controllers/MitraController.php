@@ -139,11 +139,11 @@ class MitraController extends Controller
         return redirect()->route('mitra.index')->with('success', 'Mitra berhasil ditambahkan');
     }
 
-    public function edit($id)
-    {
-        $mitra = Mitra::findOrFail($id);
-        return view('admin.mitra.edit', compact('mitra'));
-    }
+    public function edit(Mitra $mitra)
+{
+    return view('admin.mitra.edit', compact('mitra'));
+}
+
 
     public function update(Request $request, $id)
     {

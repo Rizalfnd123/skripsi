@@ -14,62 +14,85 @@ use Illuminate\Http\Request;
 
 class PenelitianController extends Controller
 {
-    
+
     public function storeLuaran(Request $request, $penelitianId)
     {
         $request->validate([
             'tipe' => 'required|in:jurnal,HKI,produk,sertifikat',
             'dokumen' => 'required|file|mimes:pdf,docx,jpg,png|max:10240',
         ]);
-    
+
         $penelitian = Penelitian::findOrFail($penelitianId);
-    
+
         $dokumenPath = $request->file('dokumen')->store('luaran_documents', 'public');
-    
+
         Luaran::create([
             'penelitian_id' => $penelitian->id,
             'tipe' => $request->tipe,
             'dokumen' => $dokumenPath,
         ]);
-    
+
         return redirect()->route('penelitian.edit', $penelitian->id)
-                         ->with('success', 'Luaran berhasil ditambahkan!');
+            ->with('success', 'Luaran berhasil ditambahkan!');
     }
-    
+
     public function index(Request $request)
     {
-
         $tingkat = Tingkat::all();
-        $roadmap = Roadmap::all();
+        $roadmaps = Roadmap::all();
         $dosens = Dosen::all();
-        $mahasiswa  = Mahasiswa::all();
+        $mahasiswa = Mahasiswa::all();
         $mitra = Mitra::all();
-        // Ambil filter semester dari request
-        $semester = $request->semester;
-        $penelitianQuery = Penelitian::with([
-            'tingkat', 
-            'roadmap',
-            'ketuaDosen',
-            'anggotaPenelitian.dosen',
-            'anggotaPenelitian.mahasiswa'
-        ]);
-        
-        if ($semester) {
-            // Cek apakah semester ganjil atau genap
-            [$tahun, $jenisSemester] = explode(' ', $semester);
 
-            if (strtolower($jenisSemester) == 'ganjil') {
-                $penelitianQuery->whereBetween('tanggal', ["$tahun-07-01", "$tahun-12-31"]);
-            } elseif (strtolower($jenisSemester) == 'genap') {
-                $tahunGenap = (int) $tahun + 1; // Semester genap berlangsung hingga tahun berikutnya
-                $penelitianQuery->whereBetween('tanggal', ["$tahunGenap-01-01", "$tahunGenap-06-30"]);
+        $tahun = $request->tahun;
+
+        // Ambil list tahun unik dari tabel penelitian
+        $tahunList = Penelitian::selectRaw('YEAR(tanggal) as tahun')
+            ->distinct()
+            ->orderByDesc('tahun')
+            ->pluck('tahun');
+
+        $penelitiansPerRoadmap = [];
+
+        foreach ($roadmaps as $roadmap) {
+            $query = Penelitian::with([
+                'tingkat',
+                'roadmap',
+                'ketuaDosen',
+                'anggotaPenelitian.dosen',
+                'anggotaPenelitian.mahasiswa'
+            ])->where('id_roadmap', $roadmap->id);
+
+            // Filter berdasarkan tahun
+            if ($tahun) {
+                $query->whereYear('tanggal', $tahun);
             }
+
+            // Paginasi per-roadmap
+            $penelitiansPerRoadmap[$roadmap->id] = $query->paginate(10, ['*'], 'page_roadmap_' . $roadmap->id);
+        }
+        $statistikRoadmap = [];
+
+        foreach ($roadmaps as $rm) {
+            $count = Penelitian::where('id_roadmap', $rm->id)
+                ->when($tahun, fn($q) => $q->whereYear('tanggal', $tahun))
+                ->count();
+            $statistikRoadmap[$rm->jenis_roadmap] = $count;
         }
 
-        $penelitian = $penelitianQuery->paginate(10);
-        return view('admin.penelitian.index', compact('penelitian', 'tingkat', 'roadmap', 'dosens', 'mitra', 'mahasiswa'));
-    }
 
+        return view('admin.penelitian.index', [
+            'penelitiansPerRoadmap' => $penelitiansPerRoadmap,
+            'tingkat' => $tingkat,
+            'roadmap' => $roadmaps,
+            'dosens' => $dosens,
+            'mahasiswa' => $mahasiswa,
+            'mitra' => $mitra,
+            'tahun' => $tahun,
+            'tahunList' => $tahunList,
+            'statistikRoadmap' => $statistikRoadmap,
+        ]);
+    }
     public function create()
     {
         $tingkat = Tingkat::all();
@@ -154,62 +177,62 @@ class PenelitianController extends Controller
 
 
     public function update(Request $request, $id)
-{
-    // Validasi input
-    $request->validate([
-        'judul' => 'required|string|max:255',
-        'tanggal' => 'required|date',
-        'id_tingkat' => 'required|exists:tingkat,id',
-        'id_roadmap' => 'required|exists:roadmap,id',
-        'ketua' => 'required|exists:dosens,id',
-        'anggota_dosen' => 'nullable|array',
-        'anggota_dosen.*' => 'exists:dosens,id',
-        'anggota_mahasiswa' => 'nullable|array',
-        'anggota_mahasiswa.*' => 'exists:mahasiswa,id_mahasiswa',
-    ]);
+    {
+        // Validasi input
+        $request->validate([
+            'judul' => 'required|string|max:255',
+            'tanggal' => 'required|date',
+            'id_tingkat' => 'required|exists:tingkat,id',
+            'id_roadmap' => 'required|exists:roadmap,id',
+            'ketua' => 'required|exists:dosens,id',
+            'anggota_dosen' => 'nullable|array',
+            'anggota_dosen.*' => 'exists:dosens,id',
+            'anggota_mahasiswa' => 'nullable|array',
+            'anggota_mahasiswa.*' => 'exists:mahasiswa,id_mahasiswa',
+        ]);
 
-    // Cari penelitian yang akan diperbarui
-    $penelitian = Penelitian::findOrFail($id);
+        // Cari penelitian yang akan diperbarui
+        $penelitian = Penelitian::findOrFail($id);
 
-    // Update data penelitian
-    $penelitian->update([
-        'judul' => $request->judul,
-        'tanggal' => $request->tanggal,
-        'id_tingkat' => $request->id_tingkat,
-        'id_roadmap' => $request->id_roadmap,
-        'ketua' => $request->ketua,
-    ]);
+        // Update data penelitian
+        $penelitian->update([
+            'judul' => $request->judul,
+            'tanggal' => $request->tanggal,
+            'id_tingkat' => $request->id_tingkat,
+            'id_roadmap' => $request->id_roadmap,
+            'ketua' => $request->ketua,
+        ]);
 
-    // Hapus anggota yang lama dan tambahkan yang baru
-    // Menghapus anggota dosen lama
-    $penelitian->anggotaPenelitian()->where('anggota_type', 'Dosen')->delete();
+        // Hapus anggota yang lama dan tambahkan yang baru
+        // Menghapus anggota dosen lama
+        $penelitian->anggotaPenelitian()->where('anggota_type', 'Dosen')->delete();
 
-    // Menghapus anggota mahasiswa lama
-    $penelitian->anggotaPenelitian()->where('anggota_type', 'Mahasiswa')->delete();
+        // Menghapus anggota mahasiswa lama
+        $penelitian->anggotaPenelitian()->where('anggota_type', 'Mahasiswa')->delete();
 
-    // Menambahkan anggota dosen baru
-    if ($request->has('anggota_dosen')) {
-        foreach ($request->anggota_dosen as $dosen_id) {
-            $penelitian->anggotaPenelitian()->create([
-                'anggota_id' => $dosen_id,
-                'anggota_type' => 'Dosen',
-            ]);
+        // Menambahkan anggota dosen baru
+        if ($request->has('anggota_dosen')) {
+            foreach ($request->anggota_dosen as $dosen_id) {
+                $penelitian->anggotaPenelitian()->create([
+                    'anggota_id' => $dosen_id,
+                    'anggota_type' => 'Dosen',
+                ]);
+            }
         }
-    }
 
-    // Menambahkan anggota mahasiswa baru
-    if ($request->has('anggota_mahasiswa')) {
-        foreach ($request->anggota_mahasiswa as $mahasiswa_id) {
-            $penelitian->anggotaPenelitian()->create([
-                'anggota_id' => $mahasiswa_id,
-                'anggota_type' => 'Mahasiswa',
-            ]);
+        // Menambahkan anggota mahasiswa baru
+        if ($request->has('anggota_mahasiswa')) {
+            foreach ($request->anggota_mahasiswa as $mahasiswa_id) {
+                $penelitian->anggotaPenelitian()->create([
+                    'anggota_id' => $mahasiswa_id,
+                    'anggota_type' => 'Mahasiswa',
+                ]);
+            }
         }
-    }
 
-    // Redirect dengan pesan sukses
-    return redirect()->route('penelitian.index')->with('success', 'Penelitian berhasil diperbarui');
-}
+        // Redirect dengan pesan sukses
+        return redirect()->route('penelitian.index')->with('success', 'Penelitian berhasil diperbarui');
+    }
 
 
 
